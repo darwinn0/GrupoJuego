@@ -315,7 +315,7 @@ back_wall = Entity(    # Crea una nueva entidad (un objeto en la escena) y la as
 # Pared izquierda del escenario.
 left_wall = Entity(
     model='cube',
-    scale=(1, 30, 60), # Ancho: 1, Alto: 30, Profundidad: 60 (cubre el rango Z).
+    scale=(1, 30, 85), # Ancho: 1, Alto: 30, Profundidad: 60 (cubre el rango Z).
     position=(-20, 5, 7.5), # Posición X ajustada a -20 (izquierda).
     texture='assets/textures/mapa.png', # Textura.
     color=color.white, # Color.
@@ -325,7 +325,7 @@ left_wall = Entity(
 # Pared derecha del escenario.
 right_wall = Entity(
     model='cube',
-    scale=(1, 30, 60), # Ancho: 1, Alto: 30, Profundidad: 60.
+    scale=(1, 30, 85), # Ancho: 1, Alto: 30, Profundidad: 60.
     position=(20, 5, 7.5), # Posición X ajustada a 20 (derecha).
     texture='assets/textures/mapa.png', # Textura.
     color=color.white, # ¡CAMBIADO A BLANCO!
@@ -335,8 +335,8 @@ right_wall = Entity(
 # Techo del escenario.
 ceiling = Entity(
     model='cube',
-    scale=(42, 1, 45), # ANCHO AJUSTADO: Ahora es 42 para cubrir el espacio de 40 de la pared trasera y un poco más.
-    position=(0, 20, 7.5), # Posición X=0 (centrado), Y=20 (altura del techo), Z=7.5 (posición Z central).
+    scale=(49, 1, 85), # ANCHO AJUSTADO: Ahora es 42 para cubrir el espacio de 40 de la pared trasera y un poco más.
+    position=(0, 20, 9.5), # Posición X=0 (centrado), Y=20 (altura del techo), Z=7.5 (posición Z central).
     texture='assets/textures/cieloo.png', # Textura del cielo (asumiendo que 'cieloo.png' es la versión oscura).
     color=color.white, # Asegurarse de que el color sea blanco si hay textura.
     collider='box'
@@ -353,7 +353,7 @@ ground_plane = Entity(
 )
 
 # Cielo del juego (completamente negro).
-sky_color = Sky(color=color.black)
+sky_color = Sky(color=color.black66)
 
 # Luz direccional (simula una fuente de luz lejana como el sol).
 sun = DirectionalLight(y=10, x=20, shadows=True, color=color.white) # Con sombras y color blanco.
