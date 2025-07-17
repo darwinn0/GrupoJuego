@@ -6,7 +6,7 @@ import math
 LEVEL_CONFIG = {
     1: {'targets': 10, 'speed': (10, 15), 'scale': 2.8, 'accuracy_goal': 50},
     2: {'targets': 10, 'speed': (15, 22), 'scale': 2.0, 'accuracy_goal': 60},
-    3: {'targets': 10, 'speed': (20, 28), 'scale': 1.8, 'accuracy_goal': 75}
+    3: {'targets': 10, 'speed': (20, 28), 'scale': 2.0, 'accuracy_goal': 75}
 }
 
 # --- Clase para los Objetivos Esféricos (¡Ahora Patos!) ---
@@ -19,11 +19,11 @@ class TargetSphere(Entity):
 
         super().__init__(
             model='quad',  # ¡CAMBIADO A 'quad' para usar una imagen 2D!
-            texture='assets/textures/mario.png', # ¡AQUÍ ES DONDE PONES LA RUTA A TU IMAGEN DE PATO!
+            texture='assets/textures/mario.png', # ¡AQUÍ ES DONDE PONES LA RUTA A TU IMAGEN!
             color=color.white, # Usa color.white para que la textura no se tiña.
             scale=scale,
             position=start_pos,
-            collider='box', # Cambiamos a 'box' o 'quad' porque ya no es una esfera. 'box' es una buena opción general.
+            collider='quad', # Cambiamos a 'box' o 'quad' porque ya no es una esfera. 'box' es una buena opción general.
             shadow=True,
             billboard=True # ¡IMPORTANTE! Esto hace que el pato siempre mire a la cámara, sin importar la rotación.
         )
@@ -245,7 +245,8 @@ shooting_range_background = Entity(
     double_sided=True
 ).disable()
 
-# **CABINA DE DISPARO - ESTILO OSCURO**
+# **CABINA DE DISPARO **
+#pared trasera
 back_wall = Entity(    # Crea una nueva entidad (un objeto en la escena) y la asigna a la variable 'back_wall'.
     model='cube',      # Define la forma de la entidad. En este caso, es un cubo.
     scale=(40, 30, 1), # Ancho: 10 unidades (de X=-5 a X=5), Alto: 30, Profundidad: 1. (Esta es la nueva anchura de referencia).
@@ -255,6 +256,7 @@ back_wall = Entity(    # Crea una nueva entidad (un objeto en la escena) y la as
     collider='box'     # Asigna un colisionador de tipo caja.
 )
 
+#pared izquierda
 left_wall = Entity(
     model='cube',
     scale=(1, 30, 60), # Ancho: 1, Alto: 30, Profundidad: 45. (Cubre desde Z=-15 hasta Z=30).
@@ -264,6 +266,7 @@ left_wall = Entity(
     collider='box'
 )
 
+#pared derecha
 right_wall = Entity(
     model='cube',
     scale=(1, 30, 60), # Ancho: 1, Alto: 30, Profundidad: 45.
@@ -273,9 +276,10 @@ right_wall = Entity(
     collider='box'
 )
 
+#cielo 
 ceiling = Entity(
     model='cube',
-    scale=(42, 1, 45), # ANCHO AJUSTADO: Ahora es 42 para cubrir el espacio de 40 de la pared trasera y un poco más.
+    scale=(42, 1, 50), # ANCHO AJUSTADO: Ahora es 42 para cubrir el espacio de 40 de la pared trasera y un poco más.
     position=(0, 20, 7.5), # Posición X=0 (centrado), Y=20 (altura del techo), Z=7.5 (posición Z central, igual que paredes laterales).
     texture='assets/textures/cieloo.png', # Textura del cielo (asumiendo que 'cieloo.png' es la versión oscura).
     color=color.white, # Asegurarse de que el color sea blanco si hay textura
