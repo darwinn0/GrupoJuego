@@ -87,7 +87,7 @@ def start_level(level):
     elif current_level == 2:
         current_bg_music = Audio('assets/sounds/fondoNivel2.mp3', loop=True, autoplay=False, volume=0.8)
     elif current_level == 3:
-        current_bg_music = Audio('assets/sounds/fondoNivel3.mp3', loop=True, autoplay=False, volume=0.8)
+        current_bg_music = Audio('assets/sounds/fondoNivel3.mp3', loop=True, autoplay=False, volume=0.4) # Volumen de fondo del Nivel 3
 
     if current_bg_music:
         current_bg_music.play()
@@ -227,7 +227,10 @@ def resume_game():
 app = Ursina(title='AIM PRESICION DDC', borderless=False, fullscreen=True)
 
 # --- Sonidos ---
-gunshot_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=0.3)
+gunshot_pistol_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=0.3)
+gunshot_rifle_sound = Audio('assets/sounds/sonidoRifle.mp3', loop=False, autoplay=False, volume=0.5)
+# CAMBIO AQUÍ: Volumen aumentado para el sonido de la escopeta
+gunshot_shotgun_sound = Audio('assets/sounds/sonidoEscopeta.mp3', loop=False, autoplay=False, volume=0.8) # Por ejemplo, de 0.5 a 0.8
 hit_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=0.5)
 
 # --- Creación del Entorno (Cabina de Disparo con estilo oscuro) ---
@@ -309,6 +312,7 @@ pistol.disable()
 
 # para el nivel 2
 rifle = Entity(parent=camera, model='assets/models/xm177.obj', color=color.black, rotation=(0, 100, -5), position=(0.6, -0.5, 1.5), scale=0.03)
+rifle.disable() # Asegúrate de deshabilitar el rifle al inicio
 
 # para el nivel 3
 shotgun = Entity(parent=camera,
@@ -447,17 +451,20 @@ def input(key):
         last_shot_time = time.time()
 
         shots_fired += 1
-        gunshot_sound.play()
-
+        
+        # Reproducir el sonido de disparo correcto según el nivel
         if current_level == 1:
+            gunshot_pistol_sound.play()
             pistol.rotation_x = -10
             pistol.animate_rotation_x(0, duration=0.1)
             ignore_list = [pistol]
         elif current_level == 2:
+            gunshot_rifle_sound.play() # Nuevo sonido para el rifle
             rifle.rotation_x = -5
             rifle.animate_rotation_x(0, duration=0.1)
             ignore_list = [rifle]
         elif current_level == 3:
+            gunshot_shotgun_sound.play() # Nuevo sonido para la escopeta
             shotgun.rotation_x = -15
             shotgun.animate_rotation_x(0, duration=0.1)
             ignore_list = [shotgun]
