@@ -2,7 +2,9 @@
 from ursina import *
 import math
 
+# ======================================================================================
 # --- Configuración de Niveles ---
+# ======================================================================================
 # Diccionario que define las propiedades de cada nivel.
 # 'targets': número de objetivos a aparecer
 # 'speed': rango de velocidad de los objetivos (mínimo, máximo)
@@ -14,7 +16,9 @@ LEVEL_CONFIG = {
     3: {'targets': 10, 'speed': (20, 28), 'scale': 1.8, 'accuracy_goal': 75}
 }
 
+# ======================================================================================
 # --- Clase para los Objetivos (¡Ahora Marios en este juego!) ---
+# ======================================================================================
 class TargetSphere(Entity):
     def __init__(self, speed_range, scale):
         # Decide si el objetivo aparece por la izquierda (-1) o por la derecha (1)
@@ -72,7 +76,9 @@ class TargetSphere(Entity):
         # Invoca la creación del siguiente objetivo después de un pequeño retraso
         invoke(spawn_next_target, delay=0.5)
 
+# ======================================================================================
 # --- Variables Globales del Juego ---
+# ======================================================================================
 hits = 0            # Número de aciertos
 points = 0          # Puntos del jugador (actualmente no usados en el HUD)
 shots_fired = 0     # Número de disparos realizados
@@ -83,7 +89,9 @@ game_active = False # Booleano para saber si el juego está activo
 last_shot_time = 0  # Tiempo del último disparo para controlar la cadencia
 current_bg_music = None # Referencia a la música de fondo actual
 
+# ======================================================================================
 # --- Funciones del Juego ---
+# ======================================================================================
 
 # Cambia a la pantalla de selección de nivel
 def go_to_level_select():
@@ -104,7 +112,9 @@ def start_level(level):
         destroy(current_bg_music)
         current_bg_music = None
 
+# ======================================================================================
     # Carga la música de fondo según el nivel
+# ======================================================================================
     if current_level == 1:
         current_bg_music = Audio('assets/sounds/fondo.mp3', loop=True, autoplay=False, volume=0.8)
     elif current_level == 2:
@@ -122,7 +132,9 @@ def start_level(level):
 
     last_shot_time = time.time() # Reinicia el temporizador del último disparo
 
+# ======================================================================================
     # Deshabilita todas las armas y luego habilita la correcta para el nivel
+# ======================================================================================
     pistol.disable()
     rifle.disable()
     shotgun.disable()
@@ -141,7 +153,9 @@ def start_level(level):
 
     spawn_next_target() # Llama a la función para generar el primer objetivo
 
+# ======================================================================================
 # Genera el siguiente objetivo
+# ======================================================================================
 def spawn_next_target():
     global targets_spawned
     if not game_active: return # No genera objetivos si el juego no está activo
@@ -156,7 +170,9 @@ def spawn_next_target():
         # Si ya se generaron todos los objetivos, finaliza el nivel después de un retraso
         invoke(end_level, delay=1)
 
+# ======================================================================================
 # Finaliza el nivel y muestra la pantalla de resultados
+# ======================================================================================
 def end_level():
     global game_active, unlocked_level, current_bg_music
     game_active = False # Desactiva el juego
@@ -179,7 +195,9 @@ def end_level():
     accuracy = (hits / shots_fired) * 100 if shots_fired > 0 else 0
     goal = LEVEL_CONFIG.get(current_level, {}).get('accuracy_goal', 0)
 
+# ======================================================================================
     # Crea el panel de fin de nivel con la imagen de fondo
+# ======================================================================================
     end_panel = Entity(
         parent=camera.ui,
         model='quad',
@@ -190,7 +208,9 @@ def end_level():
         z=1
     )
     
-    # Muestra la precisión y aciertos
+# ======================================================================================
+# Muestra la precisión y aciertos por nivel 
+# ======================================================================================
     Text(parent=end_panel, text=f"Precisión: {accuracy:.1f}% (Objetivo: {goal}%)", origin=(0,0), y=0.1, scale=1.5)
     Text(parent=end_panel, text=f"Aciertos: {hits} / {targets_spawned}", origin=(0,0), y=-.05, scale=1.5) # Mostrar aciertos/objetivos_generados
 
@@ -216,8 +236,9 @@ def end_level():
         Button(parent=end_panel, text="Reintentar", color=color.azure, scale=(0.25, 0.08), y=-.2, on_click=Func(lambda: (destroy(end_panel), start_level(current_level))))
         # Botón para volver al menú de niveles
         Button(parent=end_panel, text="Menú de Niveles", color=color.red, scale=(0.25, 0.08), y=-.35, on_click=Func(lambda: (destroy(end_panel), show_level_select_menu())))
-
+# ======================================================================================
 # Muestra el menú de selección de nivel
+# ======================================================================================
 def show_level_select_menu():
     global current_bg_music
     game_hud.disable()
@@ -238,7 +259,9 @@ def show_level_select_menu():
         destroy(current_bg_music)
         current_bg_music = None
 
+# ======================================================================================
 # Muestra el menú principal
+# ======================================================================================
 def show_main_menu():
     global current_bg_music
     level_select_menu.disable()
@@ -275,7 +298,9 @@ def update_level_buttons():
         button.disabled = (i + 1 > unlocked_level) # Deshabilita si el nivel no está desbloqueado
         button.text_entity.color = color.white if not button.disabled else color.gray # Cambia color del texto
 
-# Reanuda el juego desde la pausa
+# ======================================================================================
+# Reanuda el juego cuando se sale 
+# ======================================================================================
 def resume_game():
     global current_bg_music
     pause_menu.disable() # Deshabilita el menú de pausa
@@ -284,17 +309,20 @@ def resume_game():
     if current_bg_music:
         current_bg_music.play() # Reanuda la música de fondo
 
-# --- Inicialización de la Aplicación Ursina ---
-app = Ursina(title='AIM PRESICION DDC', borderless=False, fullscreen=True)
+# Inicialización de la Aplicación Ursina 
+app = Ursina(title='AIM PRESICION DDC', borderless=False, fullscreen=True, info=False)
 
-# --- Sonidos ---
+# ======================================================================================
+# Sonidos de cada arma y de efecto de disaparo
+# ======================================================================================
 gunshot_pistol_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=0.3)
 gunshot_rifle_sound = Audio('assets/sounds/sonidoRifle.mp3', loop=False, autoplay=False, volume=0.5)
 gunshot_shotgun_sound = Audio('assets/sounds/sonidoEscopeta.mp3', loop=False, autoplay=False, volume=0.8) # Volumen aumentado
 hit_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=0.5)
 
-# --- Creación del Entorno (Cabina de Disparo con estilo oscuro) ---
-# Entidad de fondo principal, inicialmente deshabilitada si tienes un escenario 3D
+# ======================================================================================
+# Creación del Entorno de la cabina de disparo
+# ======================================================================================
 shooting_range_background = Entity(
     model='quad',
     texture='assets/textures/mapa.png',
@@ -367,7 +395,9 @@ ambient_light = AmbientLight(color=color.rgba(100, 100, 100, 255))
 camera.position = (0, 0, -15) # Posición de la cámara
 camera.fov = 80              # Campo de visión de la cámara
 
-# --- Armas y Mira (DISEÑOS MEJORADOS) ---
+# ======================================================================================
+# diseños de las armas con texturas y modelos
+# ======================================================================================
 # Pistola (Nivel 1)
 pistol = Entity(parent=camera,
                 model='assets/models/GUN.obj',
@@ -414,6 +444,11 @@ hud_text = Text(
     color=color.white
 )
 
+
+# ======================================================================================
+# Botones iniciales del inicio del juego
+# ======================================================================================
+
 # --- Menú Principal ---
 main_menu = Entity(
     parent=camera.ui,
@@ -445,10 +480,11 @@ quit_button = Button(
     on_click=application.quit # Sale de la aplicación
 )
 
-# --- Menú de Selección de Nivel ---
+# ======================================================================================
+# Fondo para el Menú de la Selección de Nivel
+# ======================================================================================
 level_select_menu = Entity(parent=camera.ui, enabled=False) # Contenedor para el menú de selección de nivel, inicialmente deshabilitado
 
-# Nuevo Fondo para el Menú de Selección de Nivel
 level_select_background = Entity(
     parent=level_select_menu,
     model='quad',
@@ -461,25 +497,21 @@ level_select_background = Entity(
 
 level_title = Text(parent=level_select_menu, text="Seleccionar Nivel", scale=3, origin=(0,0), y=0.4)
 
-# Contenedor para los botones de nivel para organizarlos horizontalmente
+# ======================================================================================
+# Botones para escoger el nivle en el menu de seleccion de niveles
+# ======================================================================================
 level_buttons_container = Entity(parent=level_select_menu, y=-0.4) # Ajusta la 'y' para mover el grupo de botones hacia abajo
 # Botones para seleccionar cada nivel, ahora dentro del contenedor y con posiciones X ajustadas
 level_1_button = Button(parent=level_buttons_container, text="Nivel 1", scale=(0.25, 0.08), x=-0.35, y=0.1, on_click=lambda: start_level(1))
 level_2_button = Button(parent=level_buttons_container, text="Nivel 2", scale=(0.25, 0.08), x=0, y=0.1, on_click=lambda: start_level(2))
 level_3_button = Button(parent=level_buttons_container, text="Nivel 3", scale=(0.25, 0.08), x=0.35, y=0.1, on_click=lambda: start_level(3))
 level_buttons = [level_1_button, level_2_button, level_3_button] # Lista de botones de nivel
+back_to_main_menu_button = Button( parent=level_buttons_container,text="Regresar al Inicio",color=color.red,scale=(0.3, 0.08),y=-0.02,on_click=show_main_menu) # Llama a la función para mostrar el menú principal
 
-# Nuevo botón para regresar al inicio
-back_to_main_menu_button = Button(
-    parent=level_buttons_container,
-    text="Regresar al Inicio",
-    color=color.red,
-    scale=(0.3, 0.08),
-    y=-0.02,
-    on_click=show_main_menu # Llama a la función para mostrar el menú principal
-)
 
-# --- Menú de Pausa ---
+# ======================================================================================
+# --- Menú de cuando se le da al scape
+# ======================================================================================
 pause_menu = Entity(parent=camera.ui, enabled=False, model='quad', scale=(0.5, 0.5), color=color.black90) # Menú de pausa
 Text(parent=pause_menu, text="Juego en Pausa", origin=(0,0), y=0.4, scale=2)
 
@@ -487,9 +519,9 @@ Button(parent=pause_menu, text="Reanudar Juego", color=color.azure, scale=(0.8, 
 Button(parent=pause_menu, text="Menú de Niveles", color=color.blue, scale=(0.8, 0.2), y=-0.1, on_click=Func(lambda: (application.resume(), pause_menu.disable(), show_level_select_menu())))
 Button(parent=pause_menu, text="Salir al Menú Principal", color=color.red, scale=(0.8, 0.2), y=-0.35, on_click=Func(lambda: (application.resume(), pause_menu.disable(), show_main_menu())))
 
+# ======================================================================================
 # --- Lógica Principal del Juego ---
-
-# Función que se ejecuta en cada frame
+# ======================================================================================
 def update():
     global current_bg_music
     # Si el juego no está pausado y está activo
@@ -505,7 +537,9 @@ def update():
     elif application.paused and current_bg_music and current_bg_music.playing:
         current_bg_music.pause()
 
+# ======================================================================================
 # Función que maneja la entrada del usuario (teclado y ratón)
+# ======================================================================================
 def input(key):
     global shots_fired, last_shot_time, current_bg_music
     # Si se presiona 'escape' y el juego está activo, se alterna la pausa
@@ -523,18 +557,20 @@ def input(key):
     if application.paused: # Si el juego está pausado, no procesar más entradas de juego
         return
 
-    # Si el juego está activo y se hace clic con el botón izquierdo del ratón
+# ======================================================================================
+    # desactiva el clic izquierdo para que no haga ni una funcion
+# ======================================================================================
     if game_active and key == 'left mouse down':
         # Controla la cadencia de disparo (0.5 segundos entre disparos)
         if time.time() - last_shot_time < 0.5:
             return
         last_shot_time = time.time() # Actualiza el tiempo del último disparo
-
         shots_fired += 1 # Incrementa el contador de disparos
-
         ignore_list = [] # Lista de entidades a ignorar en el raycast
 
-        # Reproducir el sonido de disparo y animar el arma correcta según el nivel
+# ======================================================================================
+    # Reproducir el sonido de disparo y animar el arma correcta según el nivel
+# ======================================================================================
         if current_level == 1:
             gunshot_pistol_sound.play()
             pistol.rotation_x = -10
@@ -555,9 +591,9 @@ def input(key):
         hit_info = raycast(camera.world_position, camera.forward, distance=200, ignore=ignore_list)
         if hit_info.hit and hasattr(hit_info.entity, 'hit'):
             hit_info.entity.hit() # Si se golpeó una entidad con el método 'hit', lo llama
-
+# ======================================================================================
 # --- Iniciar el Juego ---
-# Deshabilita todos los elementos del juego al inicio para mostrar el menú principal
+# ======================================================================================
 game_hud.disable()
 pistol.disable()
 rifle.disable()
