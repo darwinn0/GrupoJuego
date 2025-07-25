@@ -317,7 +317,7 @@ app = Ursina(title='AIM PRESICION DDC', borderless=False, fullscreen=True, info=
 # ======================================================================================
 gunshot_pistol_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=0.3)
 gunshot_rifle_sound = Audio('assets/sounds/sonidoRifle.mp3', loop=False, autoplay=False, volume=0.5)
-gunshot_shotgun_sound = Audio('assets/sounds/sonidoEscopeta.mp3', loop=False, autoplay=False, volume=0.8) # Volumen aumentado
+gunshot_shotgun_sound = Audio('assets/sounds/sonidoEscopeta.mp3', loop=False, autoplay=False, volume=3.0) # Volumen aumentado
 hit_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=0.5)
 
 # ======================================================================================
@@ -337,7 +337,7 @@ back_wall = Entity(
     model='cube',
     scale=(40, 30, 1),
     position=(0, 5, 30),
-    texture='assets/textures/mapa.png',
+    texture='assets/textures/fondoMario.jpg',
     color=color.white,
     collider='box'
 )
@@ -347,7 +347,7 @@ left_wall = Entity(
     model='cube',
     scale=(1, 30, 85),
     position=(-20, 5, 7.5),
-    texture='assets/textures/mapa.png',
+    texture='assets/textures/fondoMario.jpg',
     color=color.white,
     collider='box'
 )
@@ -357,7 +357,7 @@ right_wall = Entity(
     model='cube',
     scale=(1, 30, 85),
     position=(20, 5, 7.5),
-    texture='assets/textures/mapa.png',
+    texture='assets/textures/fondoMario.jpg',
     color=color.white,
     collider='box'
 )
@@ -367,7 +367,7 @@ ceiling = Entity(
     model='cube',
     scale=(49, 1, 85),
     position=(0, 20, 9.5),
-    texture='assets/textures/cieloo.png',
+    texture='assets/textures/cieloMario.jpg',
     color=color.white,
     collider='box'
 )
@@ -377,7 +377,7 @@ ground_plane = Entity(
     model='plane',
     scale=(150, 1, 150),
     position=(0, -10, 5),
-    texture='assets/textures/piso.jpg',
+    texture='assets/textures/sueloMario.jpg',
     texture_scale=(2, 2),
     collider='box'
 )
