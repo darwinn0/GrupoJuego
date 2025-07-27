@@ -13,8 +13,8 @@ import math
 # 'batch_size': número de objetivos a generar a la vez para este nivel
 LEVEL_CONFIG = {
     1: {'targets': 10, 'speed': (10, 15), 'scale': 2.8, 'accuracy_goal': 50, 'batch_size': 1},
-    2: {'targets': 10, 'speed': (15, 22), 'scale': 2.0, 'accuracy_goal': 60, 'batch_size': 1},
-    3: {'targets': 20, 'speed': (20, 28), 'scale': 1.8, 'accuracy_goal': 75, 'batch_size': 3} # Nivel 3 con 20 objetivos y aparecen de 3 en 3
+    2: {'targets': 12, 'speed': (15, 22), 'scale': 2.0, 'accuracy_goal': 60, 'batch_size': 1},
+    3: {'targets': 14, 'speed': (20, 28), 'scale': 1.8, 'accuracy_goal': 75, 'batch_size': 1} 
 }
 
 # ======================================================================================
@@ -315,9 +315,25 @@ def resume_game():
     pause_menu.disable() # Deshabilita el menú de pausa
     mouse.locked = True  # Bloquea el ratón
     application.resume() # Reanuda la aplicación (actualizaciones, etc.)
+    
+    # === INICIO DE CAMBIO CLAVE para REINICIAR MUSICA ===
+    # Detiene y DESTRUYE cualquier música de fondo previa para asegurar que reinicie
     if current_bg_music:
-        current_bg_music.stop() # Detiene la música para reiniciar
-        current_bg_music.play() # Reanuda la música de fondo al reanudar el juego
+        current_bg_music.stop()
+        destroy(current_bg_music) 
+        current_bg_music = None
+
+    # Vuelve a cargar y reproducir la música del nivel actual
+    if current_level == 1:
+        current_bg_music = Audio('assets/sounds/fondo.mp3', loop=True, autoplay=False, volume=0.8)
+    elif current_level == 2:
+        current_bg_music = Audio('assets/sounds/fondoNivel2.mp3', loop=True, autoplay=False, volume=0.8)
+    elif current_level == 3:
+        current_bg_music = Audio('assets/sounds/fondoNivel3.mp3', loop=True, autoplay=False, volume=0.4) 
+
+    if current_bg_music:
+        current_bg_music.play() # Reproduce la música desde el inicio
+    # === FIN DE CAMBIO CLAVE ===
 
 # Inicialización de la Aplicación Ursina 
 app = Ursina(title='AIM PRESICION DDC', borderless=False, fullscreen=True, info=False)
@@ -325,7 +341,7 @@ app = Ursina(title='AIM PRESICION DDC', borderless=False, fullscreen=True, info=
 # ======================================================================================
 # Sonidos de cada arma y de efecto de disaparo
 # ======================================================================================
-gunshot_pistol_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=0.3)
+gunshot_pistol_sound = Audio('assets/sounds/sonidoArma1.mp3', loop=False, autoplay=False, volume=1.0)
 gunshot_rifle_sound = Audio('assets/sounds/sonidoRifle.mp3', loop=False, autoplay=False, volume=0.5)
 gunshot_shotgun_sound = Audio('assets/sounds/sonidoEscopeta.mp3', loop=False, autoplay=False, volume=3.0) 
 hit_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=0.5)
@@ -419,12 +435,14 @@ pistol = Entity(parent=camera,
 pistol.disable() # Deshabilitada al inicio.
 
 # Rifle (Nivel 2)
-rifle = Entity(parent=camera, 
-               model='assets/models/xm177.obj', 
-               color=color.black, rotation=(0, 100, -5), 
-               position=(0.6, -0.5, 1.5), 
-               scale=0.03)
-rifle.disable() # Deshabilitada al inicio
+rifle = Entity(parent=camera,
+                model='assets/models/modeloArma2.obj',
+                texture='assets/textures/arma2.png',
+                position=(0.3, -0.4, 1.2), # Ajustada para centrar horizontalmente (x=0) y en la parte inferior (y=-0.7)
+                rotation=(0, 360, 0),    # Rotación para que apunte hacia adelante (ajusta a 90 o 0 si tu modelo lo necesita)
+                scale=1.5             # Escala aumentada para que sea grande y visible (ajusta si es necesario)
+               )
+rifle.disable()
 
 # Escopeta (Nivel 3)
 shotgun = Entity(parent=camera,
@@ -565,9 +583,24 @@ def input(key):
             if current_bg_music:
                 current_bg_music.pause() # Pausa la música de fondo
         else:
+            # === INICIO DE CAMBIO CLAVE para REINICIAR MUSICA (escape) ===
+            # Detiene y DESTRUYE cualquier música de fondo previa para asegurar que reinicie
             if current_bg_music:
-                current_bg_music.stop() # Detiene la música para reiniciarla
-                current_bg_music.play() # Reanuda la música de fondo
+                current_bg_music.stop()
+                destroy(current_bg_music) 
+                current_bg_music = None
+
+            # Vuelve a cargar y reproducir la música del nivel actual
+            if current_level == 1:
+                current_bg_music = Audio('assets/sounds/fondo.mp3', loop=True, autoplay=False, volume=0.8)
+            elif current_level == 2:
+                current_bg_music = Audio('assets/sounds/fondoNivel2.mp3', loop=True, autoplay=False, volume=0.8)
+            elif current_level == 3:
+                current_bg_music = Audio('assets/sounds/fondoNivel3.mp3', loop=True, autoplay=False, volume=0.4) 
+
+            if current_bg_music:
+                current_bg_music.play() # Reproduce la música desde el inicio
+            # === FIN DE CAMBIO CLAVE ===
     
     if application.paused: # Si el juego está pausado, no procesar más entradas de juego
         return
