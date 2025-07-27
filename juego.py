@@ -10,10 +10,11 @@ import math
 # 'speed': rango de velocidad de los objetivos (mínimo, máximo)
 # 'scale': tamaño de los objetivos
 # 'accuracy_goal': porcentaje de precisión requerido para completar el nivel
+# 'batch_size': número de objetivos a generar a la vez para este nivel
 LEVEL_CONFIG = {
-    1: {'targets': 10, 'speed': (10, 15), 'scale': 2.8, 'accuracy_goal': 50},
-    2: {'targets': 10, 'speed': (15, 22), 'scale': 2.0, 'accuracy_goal': 60},
-    3: {'targets': 10, 'speed': (20, 28), 'scale': 1.8, 'accuracy_goal': 75}
+    1: {'targets': 10, 'speed': (10, 15), 'scale': 2.8, 'accuracy_goal': 50, 'batch_size': 1},
+    2: {'targets': 10, 'speed': (15, 22), 'scale': 2.0, 'accuracy_goal': 60, 'batch_size': 1},
+    3: {'targets': 20, 'speed': (20, 28), 'scale': 1.8, 'accuracy_goal': 75, 'batch_size': 3} # Nivel 3 con 20 objetivos y aparecen de 3 en 3
 }
 
 # ======================================================================================
@@ -95,21 +96,21 @@ current_bg_music = None # Referencia a la música de fondo actual
 
 # Cambia a la pantalla de selección de nivel
 def go_to_level_select():
-    main_menu.disable()         # Deshabilita el menú principal
-    level_select_menu.enable()  # Habilita el menú de selección de nivel
-    update_level_buttons()      # Actualiza el estado de los botones de nivel (desbloqueados/bloqueados)
+    main_menu.disable()      # Deshabilita el menú principal
+    level_select_menu.enable() # Habilita el menú de selección de nivel
+    update_level_buttons()     # Actualiza el estado de los botones de nivel (desbloqueados/bloqueados)
 
 # Inicia un nivel específico
 def start_level(level):
     global hits, points, shots_fired, game_active, current_level, targets_spawned, last_shot_time, current_bg_music
-    current_level = level       # Establece el nivel actual
+    current_level = level        # Establece el nivel actual
     hits, points, shots_fired, targets_spawned = 0, 0, 0, 0 # Reinicia contadores
-    game_active = True          # Activa el estado del juego
+    game_active = True           # Activa el estado del juego
 
-    # Detiene y destruye cualquier música de fondo previa
+    # Detiene y DESTRUYE cualquier música de fondo previa para asegurar que reinicie
     if current_bg_music:
         current_bg_music.stop()
-        destroy(current_bg_music)
+        destroy(current_bg_music) # Destruimos el objeto Audio
         current_bg_music = None
 
 # ======================================================================================
@@ -123,7 +124,7 @@ def start_level(level):
         current_bg_music = Audio('assets/sounds/fondoNivel3.mp3', loop=True, autoplay=False, volume=0.4) # Volumen de fondo del Nivel 3
 
     if current_bg_music:
-        current_bg_music.play() # Reproduce la música
+        current_bg_music.play() # Reproduce la música desde el inicio (ya que es un objeto nuevo)
 
     level_select_menu.disable() # Deshabilita el menú de selección
     game_hud.enable()           # Habilita el HUD del juego
@@ -151,21 +152,29 @@ def start_level(level):
         if isinstance(t, TargetSphere):
             destroy(t)
 
-    spawn_next_target() # Llama a la función para generar el primer objetivo
+    # Llama a la función para generar el primer (o primeros) objetivo(s)
+    # según la configuración del nivel (batch_size)
+    spawn_next_target() 
 
 # ======================================================================================
-# Genera el siguiente objetivo
+# Genera el siguiente objetivo (o batch de objetivos)
 # ======================================================================================
 def spawn_next_target():
     global targets_spawned
     if not game_active: return # No genera objetivos si el juego no está activo
 
-    # Si aún no se han generado todos los objetivos del nivel
-    if targets_spawned < LEVEL_CONFIG.get(current_level, {}).get('targets', 0):
-        config = LEVEL_CONFIG.get(current_level, {})
-        TargetSphere(config.get('speed', (10, 15)), config.get('scale', 1)) # Crea un nuevo objetivo
-        targets_spawned += 1 # Incrementa el contador de objetivos generados
-        update_hud()         # Actualiza el HUD
+    config = LEVEL_CONFIG.get(current_level, {})
+    total_targets_for_level = config.get('targets', 0)
+    batch_size = config.get('batch_size', 1) # Obtiene el tamaño del lote para el nivel actual
+
+    # Calcula cuántos objetivos se deben generar en este momento (máx. batch_size, y no más del total del nivel)
+    targets_to_spawn_now = min(batch_size, total_targets_for_level - targets_spawned)
+
+    if targets_to_spawn_now > 0:
+        for _ in range(targets_to_spawn_now):
+            TargetSphere(config.get('speed', (10, 15)), config.get('scale', 1)) # Crea un nuevo objetivo
+            targets_spawned += 1 # Incrementa el contador de objetivos generados
+        update_hud() # Actualiza el HUD
     else:
         # Si ya se generaron todos los objetivos, finaliza el nivel después de un retraso
         invoke(end_level, delay=1)
@@ -203,7 +212,7 @@ def end_level():
         model='quad',
         scale_x=camera.aspect_ratio, # Ajusta el ancho al ratio de aspecto de la cámara
         scale_y=1,                   # Ajusta la altura para que ocupe toda la pantalla
-        texture='assets/textures/fondoSalida.png',  # <--- IMAGEN DE FONDO AQUÍ
+        texture='assets/textures/fondoSalida.png',  
         color=color.white,  # Asegura que el color base no interfiera con la textura
         z=1
     )
@@ -307,7 +316,8 @@ def resume_game():
     mouse.locked = True  # Bloquea el ratón
     application.resume() # Reanuda la aplicación (actualizaciones, etc.)
     if current_bg_music:
-        current_bg_music.play() # Reanuda la música de fondo
+        current_bg_music.stop() # Detiene la música para reiniciar
+        current_bg_music.play() # Reanuda la música de fondo al reanudar el juego
 
 # Inicialización de la Aplicación Ursina 
 app = Ursina(title='AIM PRESICION DDC', borderless=False, fullscreen=True, info=False)
@@ -317,7 +327,7 @@ app = Ursina(title='AIM PRESICION DDC', borderless=False, fullscreen=True, info=
 # ======================================================================================
 gunshot_pistol_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=0.3)
 gunshot_rifle_sound = Audio('assets/sounds/sonidoRifle.mp3', loop=False, autoplay=False, volume=0.5)
-gunshot_shotgun_sound = Audio('assets/sounds/sonidoEscopeta.mp3', loop=False, autoplay=False, volume=3.0) # Volumen aumentado
+gunshot_shotgun_sound = Audio('assets/sounds/sonidoEscopeta.mp3', loop=False, autoplay=False, volume=3.0) 
 hit_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=0.5)
 
 # ======================================================================================
@@ -400,16 +410,20 @@ camera.fov = 80              # Campo de visión de la cámara
 # ======================================================================================
 # Pistola (Nivel 1)
 pistol = Entity(parent=camera,
-                model='assets/models/GUN.obj',
-                texture='assets/textures/GUN_Material.003_BaseColor.jpg',
+                model='assets/models/modeloArma1.obj',
+                texture='assets/textures/arma1.png',
                 position=(0.5, -0.4, 1.2),
-                rotation=(0, 180, 0),
+                rotation=(0, -90, 0), # Ajustada para que apunte hacia adelante
                 scale=0.15
                )
-pistol.disable() # Deshabilitada al inicio
+pistol.disable() # Deshabilitada al inicio.
 
 # Rifle (Nivel 2)
-rifle = Entity(parent=camera, model='assets/models/xm177.obj', color=color.black, rotation=(0, 100, -5), position=(0.6, -0.5, 1.5), scale=0.03)
+rifle = Entity(parent=camera, 
+               model='assets/models/xm177.obj', 
+               color=color.black, rotation=(0, 100, -5), 
+               position=(0.6, -0.5, 1.5), 
+               scale=0.03)
 rifle.disable() # Deshabilitada al inicio
 
 # Escopeta (Nivel 3)
@@ -545,15 +559,16 @@ def input(key):
     # Si se presiona 'escape' y el juego está activo, se alterna la pausa
     if key == 'escape' and game_active:
         application.paused = not application.paused # Alterna el estado de pausa de la aplicación
-        pause_menu.enabled = application.paused     # Habilita/deshabilita el menú de pausa
-        mouse.locked = not pause_menu.enabled       # Bloquea/desbloquea el ratón
+        pause_menu.enabled = application.paused      # Habilita/deshabilita el menú de pausa
+        mouse.locked = not pause_menu.enabled        # Bloquea/desbloquea el ratón
         if application.paused:
             if current_bg_music:
                 current_bg_music.pause() # Pausa la música de fondo
         else:
             if current_bg_music:
+                current_bg_music.stop() # Detiene la música para reiniciarla
                 current_bg_music.play() # Reanuda la música de fondo
-
+    
     if application.paused: # Si el juego está pausado, no procesar más entradas de juego
         return
 
@@ -600,4 +615,4 @@ rifle.disable()
 shotgun.disable()
 crosshair.disable()
 mouse.locked = False # Asegura que el ratón no esté bloqueado al inicio
-app.run() # Inicia la aplicación Ursina
+app.run()
