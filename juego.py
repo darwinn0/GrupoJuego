@@ -89,6 +89,7 @@ current_level = 1   # El nivel actual en juego
 game_active = False # Booleano para saber si el juego está activo
 last_shot_time = 0  # Tiempo del último disparo para controlar la cadencia
 current_bg_music = None # Referencia a la música de fondo actual
+is_aiming_ads = False # Variable para rastrear si el rifle está apuntando con la mira (Aim Down Sights)
 
 # ======================================================================================
 # --- Funciones del Juego ---
@@ -98,14 +99,15 @@ current_bg_music = None # Referencia a la música de fondo actual
 def go_to_level_select():
     main_menu.disable()      # Deshabilita el menú principal
     level_select_menu.enable() # Habilita el menú de selección de nivel
-    update_level_buttons()     # Actualiza el estado de los botones de nivel (desbloqueados/bloqueados)
+    update_level_buttons()     # Actualiza el estado de los botones de nivel (desbloqueados/desbloqueados)
 
 # Inicia un nivel específico
 def start_level(level):
-    global hits, points, shots_fired, game_active, current_level, targets_spawned, last_shot_time, current_bg_music
+    global hits, points, shots_fired, game_active, current_level, targets_spawned, last_shot_time, current_bg_music, is_aiming_ads
     current_level = level        # Establece el nivel actual
     hits, points, shots_fired, targets_spawned = 0, 0, 0, 0 # Reinicia contadores
     game_active = True           # Activa el estado del juego
+    is_aiming_ads = False        # Reinicia el estado de apuntado al iniciar un nivel
 
     # Detiene y DESTRUYE cualquier música de fondo previa para asegurar que reinicie
     if current_bg_music:
@@ -128,7 +130,7 @@ def start_level(level):
 
     level_select_menu.disable() # Deshabilita el menú de selección
     game_hud.enable()           # Habilita el HUD del juego
-    crosshair.enable()          # Habilita la mira
+    crosshair.enable()          # Asegura que la mira esté visible al inicio del nivel
     mouse.locked = True         # Bloquea el ratón en el centro de la pantalla (para la cámara)
 
     last_shot_time = time.time() # Reinicia el temporizador del último disparo
@@ -144,6 +146,10 @@ def start_level(level):
         pistol.enable()
     elif current_level == 2:
         rifle.enable()
+        # Asegúrate de que el rifle esté en posición de "hip fire" al iniciar el nivel 2
+        rifle.position = rifle_hip_position
+        rifle.rotation = rifle_hip_rotation
+        camera.fov = default_fov
     elif current_level == 3:
         shotgun.enable()
 
@@ -249,12 +255,13 @@ def end_level():
 # Muestra el menú de selección de nivel
 # ======================================================================================
 def show_level_select_menu():
-    global current_bg_music
+    global current_bg_music, is_aiming_ads
     game_hud.disable()
     pistol.disable()
     rifle.disable()
     shotgun.disable()
-    crosshair.disable()
+    crosshair.enable() # Asegura que la mira esté visible en el menú de selección
+    is_aiming_ads = False # Reinicia el estado de apuntado
     # Destruye todos los objetivos existentes
     for t in scene.entities:
         if isinstance(t, TargetSphere):
@@ -272,13 +279,14 @@ def show_level_select_menu():
 # Muestra el menú principal
 # ======================================================================================
 def show_main_menu():
-    global current_bg_music
+    global current_bg_music, is_aiming_ads
     level_select_menu.disable()
     game_hud.disable()
     pistol.disable()
     rifle.disable()
     shotgun.disable()
-    crosshair.disable()
+    crosshair.enable() # Asegura que la mira esté visible en el menú principal
+    is_aiming_ads = False # Reinicia el estado de apuntado
     # Destruye todos los objetivos existentes
     for t in scene.entities:
         if isinstance(t, TargetSphere):
@@ -311,11 +319,28 @@ def update_level_buttons():
 # Reanuda el juego cuando se sale 
 # ======================================================================================
 def resume_game():
-    global current_bg_music
+    global current_bg_music, is_aiming_ads
     pause_menu.disable() # Deshabilita el menú de pausa
     mouse.locked = True  # Bloquea el ratón
     application.resume() # Reanuda la aplicación (actualizaciones, etc.)
     
+    # Restaura el estado visual del arma si estaba apuntando antes de pausar
+    if current_level == 2:
+        # Asegura que la mira esté visible antes de verificar el estado de apuntado
+        crosshair.enable() 
+        if is_aiming_ads: # Si estaba apuntando, restaura la posición y FOV de apuntado
+            rifle.position = rifle_ads_position
+            rifle.rotation = rifle_ads_rotation
+            camera.fov = ads_fov
+            # No ocultes la mira aquí, déjala visible
+        else: # Si no estaba apuntando, restaura la posición y FOV normal
+            rifle.position = rifle_hip_position
+            rifle.rotation = rifle_hip_rotation
+            camera.fov = default_fov
+            # La mira ya está habilitada
+    else: # Para otros niveles, asegura que la mira esté visible
+        crosshair.enable()
+
     # === INICIO DE CAMBIO CLAVE para REINICIAR MUSICA ===
     # Detiene y DESTRUYE cualquier música de fondo previa para asegurar que reinicie
     if current_bg_music:
@@ -435,14 +460,27 @@ pistol = Entity(parent=camera,
 pistol.disable() # Deshabilitada al inicio.
 
 # Rifle (Nivel 2)
+# Definimos la posición y rotación inicial (hip fire)
+rifle_hip_position = Vec3(0.3, -0.4, 1.2)
+rifle_hip_rotation = Vec3(0, 360, 0) # Rotación para que apunte adelante en hip-fire
+
 rifle = Entity(parent=camera,
                 model='assets/models/modeloArma2.obj',
                 texture='assets/textures/arma2.png',
-                position=(0.3, -0.4, 1.2), # Ajustada para centrar horizontalmente (x=0) y en la parte inferior (y=-0.7)
-                rotation=(0, 360, 0),    # Rotación para que apunte hacia adelante (ajusta a 90 o 0 si tu modelo lo necesita)
-                scale=1.5             # Escala aumentada para que sea grande y visible (ajusta si es necesario)
+                position=rifle_hip_position, # Posición inicial del rifle (sin apuntar)
+                rotation=rifle_hip_rotation, # Rotación inicial del rifle (sin apuntar)
+                scale=1.5 # Escala grande
                )
 rifle.disable()
+
+# Definimos la posición y rotación para el "Aim Down Sights" (apuntar con la mira)
+rifle_ads_position = Vec3(0, -0.5, 0.8) # Más centrado en X, ligeramente más bajo en Y para alinear, más cerca en Z
+rifle_ads_rotation = Vec3(-5, -90, 0)   # Una pequeña inclinación hacia arriba (-5 en X) para el apuntado
+
+# Definimos los campos de visión (FOV) para el zoom
+default_fov = 80
+ads_fov = 60 # FOV cuando se apunta (ajusta para más o menos zoom)
+
 
 # Escopeta (Nivel 3)
 shotgun = Entity(parent=camera,
@@ -457,7 +495,9 @@ shotgun.disable() # Deshabilitada al inicio
 # Mira del juego
 crosshair = Entity(parent=camera.ui, model='circle', scale=0.008, color=color.red)
 
+# ======================================================================================
 # --- Interfaz de Usuario (UI) Mejorada ---
+# ======================================================================================
 game_hud = Entity(parent=camera.ui, enabled=False) # Contenedor para el HUD, inicialmente deshabilitado
 hud_background = Entity(
     parent=game_hud,
@@ -570,10 +610,35 @@ def update():
         current_bg_music.pause()
 
 # ======================================================================================
+# Funciones para manejar el estado de apuntado (ADS) del rifle
+# ======================================================================================
+def aim_down_sights():
+    global is_aiming_ads
+    if current_level == 2 and not is_aiming_ads: # Solo apunta si es el nivel 2 y no estás apuntando ya
+        rifle.animate_position(rifle_ads_position, duration=0.15, curve=curve.out_quad)
+        rifle.animate_rotation(rifle_ads_rotation, duration=0.15, curve=curve.out_quad)
+        # CORRECCIÓN: Usar camera.animate() para FOV
+        camera.animate('fov', ads_fov, duration=0.15, curve=curve.out_quad) 
+        is_aiming_ads = True
+        # crosshair.disable() # ELIMINADA: No ocultes la mira aquí
+
+def hip_fire_state():
+    global is_aiming_ads
+    if current_level == 2 and is_aiming_ads: # Solo vuelve a hip-fire si es el nivel 2 y estás apuntando
+        rifle.animate_position(rifle_hip_position, duration=0.2, curve=curve.out_quad)
+        rifle.animate_rotation(rifle_hip_rotation, duration=0.2, curve=curve.out_quad)
+        # CORRECCIÓN: Usar camera.animate() para FOV
+        camera.animate('fov', default_fov, duration=0.2, curve=curve.out_quad)
+        is_aiming_ads = False
+        # crosshair.enable() # ELIMINADA: No habilites la mira aquí
+
+
+# ======================================================================================
 # Función que maneja la entrada del usuario (teclado y ratón)
 # ======================================================================================
 def input(key):
-    global shots_fired, last_shot_time, current_bg_music
+    global shots_fired, last_shot_time, current_bg_music, is_aiming_ads
+
     # Si se presiona 'escape' y el juego está activo, se alterna la pausa
     if key == 'escape' and game_active:
         application.paused = not application.paused # Alterna el estado de pausa de la aplicación
@@ -583,7 +648,6 @@ def input(key):
             if current_bg_music:
                 current_bg_music.pause() # Pausa la música de fondo
         else:
-            # === INICIO DE CAMBIO CLAVE para REINICIAR MUSICA (escape) ===
             # Detiene y DESTRUYE cualquier música de fondo previa para asegurar que reinicie
             if current_bg_music:
                 current_bg_music.stop()
@@ -600,45 +664,75 @@ def input(key):
 
             if current_bg_music:
                 current_bg_music.play() # Reproduce la música desde el inicio
-            # === FIN DE CAMBIO CLAVE ===
     
     if application.paused: # Si el juego está pausado, no procesar más entradas de juego
         return
 
 # ======================================================================================
-    # desactiva el clic izquierdo para que no haga ni una funcion
+    # Lógica de apuntado con CLIC DERECHO
+# ======================================================================================
+    if game_active and current_level == 2: # Solo para el rifle en Nivel 2
+        if key == 'right mouse down':
+            aim_down_sights()
+        elif key == 'right mouse up':
+            hip_fire_state()
+
+# ======================================================================================
+    # Lógica de disparo con CLIC IZQUIERDO
 # ======================================================================================
     if game_active and key == 'left mouse down':
         # Controla la cadencia de disparo (0.5 segundos entre disparos)
         if time.time() - last_shot_time < 0.5:
             return
+
         last_shot_time = time.time() # Actualiza el tiempo del último disparo
-        shots_fired += 1 # Incrementa el contador de disparos
+        
         ignore_list = [] # Lista de entidades a ignorar en el raycast
 
-# ======================================================================================
-    # Reproducir el sonido de disparo y animar el arma correcta según el nivel
-# ======================================================================================
         if current_level == 1:
+            shots_fired += 1 # Incrementa disparos para pistola
             gunshot_pistol_sound.play()
             pistol.rotation_x = -10
             pistol.animate_rotation_x(0, duration=0.1)
             ignore_list = [pistol]
+            
+            # Realiza un raycast y detecta el impacto para la pistola
+            hit_info = raycast(camera.world_position, camera.forward, distance=200, ignore=ignore_list)
+            if hit_info.hit and hasattr(hit_info.entity, 'hit'):
+                hit_info.entity.hit()
+
         elif current_level == 2:
-            gunshot_rifle_sound.play()
-            rifle.rotation_x = -5
-            rifle.animate_rotation_x(0, duration=0.1)
-            ignore_list = [rifle]
+            # El rifle dispara siempre que se haga clic izquierdo en el Nivel 2, sin importar si está apuntando.
+            shots_fired += 1 # Incrementa disparos
+            gunshot_rifle_sound.play() # Reproduce el sonido de disparo
+            
+            # Si está apuntando, aplica un retroceso desde la posición de apuntado
+            if is_aiming_ads:
+                rifle.animate_rotation_x(rifle_ads_rotation.x - 10, duration=0.05, curve=curve.out_quad)
+                invoke(lambda: rifle.animate_rotation_x(rifle_ads_rotation.x, duration=0.05, curve=curve.out_quad), delay=0.05)
+            # Si no está apuntando, aplica un retroceso desde la posición normal (hip-fire)
+            else:
+                rifle.animate_rotation_x(rifle_hip_rotation.x - 10, duration=0.05, curve=curve.out_quad)
+                invoke(lambda: rifle.animate_rotation_x(rifle_hip_rotation.x, duration=0.05, curve=curve.out_quad), delay=0.05)
+
+
+            # Realiza un raycast para detectar el impacto
+            crosshair_hit_info = raycast(camera.world_position, camera.forward, distance=200, ignore=[rifle])
+            if crosshair_hit_info.hit and hasattr(crosshair_hit_info.entity, 'hit'):
+                crosshair_hit_info.entity.hit()
+
         elif current_level == 3:
+            shots_fired += 1 # Incrementa disparos para escopeta
             gunshot_shotgun_sound.play()
             shotgun.rotation_x = -15
             shotgun.animate_rotation_x(0, duration=0.1)
             ignore_list = [shotgun]
+
+            # Realiza un raycast y detecta el impacto para la escopeta
+            hit_info = raycast(camera.world_position, camera.forward, distance=200, ignore=ignore_list)
+            if hit_info.hit and hasattr(hit_info.entity, 'hit'):
+                hit_info.entity.hit()
         
-        # Realiza un raycast desde la cámara para detectar si se golpeó un objetivo
-        hit_info = raycast(camera.world_position, camera.forward, distance=200, ignore=ignore_list)
-        if hit_info.hit and hasattr(hit_info.entity, 'hit'):
-            hit_info.entity.hit() # Si se golpeó una entidad con el método 'hit', lo llama
 # ======================================================================================
 # --- Iniciar el Juego ---
 # ======================================================================================
@@ -646,6 +740,6 @@ game_hud.disable()
 pistol.disable()
 rifle.disable()
 shotgun.disable()
-crosshair.disable()
+crosshair.enable() # Asegura que la mira esté visible desde el inicio
 mouse.locked = False # Asegura que el ratón no esté bloqueado al inicio
 app.run()
