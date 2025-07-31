@@ -248,9 +248,19 @@ def end_level():
 
         Text(parent=end_panel, text=message, origin=(0,0), y=.3, scale=2)
         # Botón para reintentar el nivel
-        Button(parent=end_panel, text="Reintentar", color=color.azure, scale=(0.25, 0.08), y=-.2, on_click=Func(lambda: (destroy(end_panel), start_level(current_level))))
+        Button(parent=end_panel, 
+               text="Reintentar", 
+               color=color.azure, 
+               scale=(0.25, 0.08), 
+               y=-.2, 
+               on_click=Func(lambda: (destroy(end_panel), start_level(current_level))))
         # Botón para volver al menú de niveles
-        Button(parent=end_panel, text="Menú de Niveles", color=color.red, scale=(0.25, 0.08), y=-.35, on_click=Func(lambda: (destroy(end_panel), show_level_select_menu())))
+        Button(parent=end_panel, 
+               text="Menú de Niveles", 
+               color=color.red, 
+               scale=(0.25, 0.08), 
+               y=-.35, 
+               on_click=Func(lambda: (destroy(end_panel), show_level_select_menu())))
 # ======================================================================================
 # Muestra el menú de selección de nivel
 # ======================================================================================
@@ -534,22 +544,26 @@ main_menu = Entity(
 )
 
 button_container = Entity(parent=main_menu, y=-0.4) # Contenedor para los botones del menú principal
-
+# --- Botón de Inicio ---
 start_button = Button(
     parent=button_container,
-    text="INICIAR",
-    color=color.blue,
-    scale=(0.35, 0.1),
+    texture='assets/textures/iniciarbtn.jpg', # <--- CAMBIADO A .png
+    color=color.white, # <--- CAMBIADO A BLANCO para que la textura se muestre con sus colores y transparencia
+    # Si quieres que el botón subyacente sea completamente invisible y solo se vea la textura transparente:
+    # color=color.clear,
+    scale=(0.15, 0.1),
     x=-0.2,
-    on_click=go_to_level_select # Llama a la función para ir al menú de selección de nivel
+    on_click=go_to_level_select
 )
+
+# --- Botón de Salir ---
 quit_button = Button(
     parent=button_container,
-    text="SALIR",
-    color=color.red,
-    scale=(0.35, 0.1),
+    texture='assets/textures/salirbtn.jpg', 
+    color=color.white, # <--- CAMBIADO A BLANCO para que la textura se muestre con sus colores y transparencia
+    scale=(0.15, 0.1),
     x=0.2,
-    on_click=application.quit # Sale de la aplicación
+    on_click=application.quit
 )
 
 # ======================================================================================
@@ -567,8 +581,6 @@ level_select_background = Entity(
     color=color.white
 )
 
-level_title = Text(parent=level_select_menu, text="Seleccionar Nivel", scale=3, origin=(0,0), y=0.4)
-
 # ======================================================================================
 # Botones para escoger el nivle en el menu de seleccion de niveles
 # ======================================================================================
@@ -578,7 +590,11 @@ level_1_button = Button(parent=level_buttons_container, text="Nivel 1", scale=(0
 level_2_button = Button(parent=level_buttons_container, text="Nivel 2", scale=(0.25, 0.08), x=0, y=0.1, on_click=lambda: start_level(2))
 level_3_button = Button(parent=level_buttons_container, text="Nivel 3", scale=(0.25, 0.08), x=0.35, y=0.1, on_click=lambda: start_level(3))
 level_buttons = [level_1_button, level_2_button, level_3_button] # Lista de botones de nivel
-back_to_main_menu_button = Button( parent=level_buttons_container,text="Regresar al Inicio",color=color.red,scale=(0.3, 0.08),y=-0.02,on_click=show_main_menu) # Llama a la función para mostrar el menú principal
+
+back_to_main_menu_button = Button( parent=level_buttons_container,
+                                  text="Regresar al Inicio",
+                                  color=color.red,scale=(0.3, 0.08),
+                                  y=-0.02,on_click=show_main_menu) # Llama a la función para mostrar el menú principal
 
 
 # ======================================================================================
