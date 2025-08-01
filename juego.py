@@ -18,7 +18,7 @@ LEVEL_CONFIG = {
 }
 
 # ======================================================================================
-# --- Clase para los Objetivos (¡Ahora Marios en este juego!) ---
+# --- Clase para los Objetivos ---
 # ======================================================================================
 class TargetSphere(Entity):
     def __init__(self, speed_range, scale):
@@ -123,7 +123,7 @@ def start_level(level):
     elif current_level == 2:
         current_bg_music = Audio('assets/sounds/fondoNivel2.mp3', loop=True, autoplay=False, volume=0.8)
     elif current_level == 3:
-        current_bg_music = Audio('assets/sounds/fondoNivel3.mp3', loop=True, autoplay=False, volume=0.4) # Volumen de fondo del Nivel 3
+        current_bg_music = Audio('assets/sounds/fondoNivel3.mp3', loop=True, autoplay=False, volume=0.4) 
 
     if current_bg_music:
         current_bg_music.play() # Reproduce la música desde el inicio (ya que es un objeto nuevo)
@@ -146,7 +146,6 @@ def start_level(level):
         pistol.enable()
     elif current_level == 2:
         rifle.enable()
-        # Asegúrate de que el rifle esté en posición de "hip fire" al iniciar el nivel 2
         rifle.position = rifle_hip_position
         rifle.rotation = rifle_hip_rotation
         camera.fov = default_fov
@@ -219,7 +218,7 @@ def end_level():
         scale_x=camera.aspect_ratio, # Ajusta el ancho al ratio de aspecto de la cámara
         scale_y=1,                   # Ajusta la altura para que ocupe toda la pantalla
         texture='assets/textures/fondoSalida.png',  
-        color=color.white,  # Asegura que el color base no interfiera con la textura
+        color=color.white,  
         z=1
     )
     
@@ -547,10 +546,8 @@ button_container = Entity(parent=main_menu, y=-0.4) # Contenedor para los botone
 # --- Botón de Inicio ---
 start_button = Button(
     parent=button_container,
-    texture='assets/textures/iniciarbtn.jpg', # <--- CAMBIADO A .png
-    color=color.white, # <--- CAMBIADO A BLANCO para que la textura se muestre con sus colores y transparencia
-    # Si quieres que el botón subyacente sea completamente invisible y solo se vea la textura transparente:
-    # color=color.clear,
+    texture='assets/textures/iniciarbtn.jpg', 
+    color=color.white, 
     scale=(0.15, 0.1),
     x=-0.2,
     on_click=go_to_level_select
@@ -560,7 +557,7 @@ start_button = Button(
 quit_button = Button(
     parent=button_container,
     texture='assets/textures/salirbtn.jpg', 
-    color=color.white, # <--- CAMBIADO A BLANCO para que la textura se muestre con sus colores y transparencia
+    color=color.white, 
     scale=(0.15, 0.1),
     x=0.2,
     on_click=application.quit
@@ -594,7 +591,8 @@ level_buttons = [level_1_button, level_2_button, level_3_button] # Lista de boto
 back_to_main_menu_button = Button( parent=level_buttons_container,
                                   text="Regresar al Inicio",
                                   color=color.red,scale=(0.3, 0.08),
-                                  y=-0.02,on_click=show_main_menu) # Llama a la función para mostrar el menú principal
+                                  y=-0.02,
+                                  on_click=show_main_menu) # Llama a la función para mostrar el menú principal
 
 
 # ======================================================================================
