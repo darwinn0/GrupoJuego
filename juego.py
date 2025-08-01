@@ -376,7 +376,7 @@ app = Ursina(title='AIM PRESICION DDC', borderless=False, fullscreen=True, info=
 # ======================================================================================
 # Sonidos de cada arma y de efecto de disaparo
 # ======================================================================================
-gunshot_pistol_sound = Audio('assets/sounds/sonidoArma1.mp3', loop=False, autoplay=False, volume=1.0)
+gunshot_pistol_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=1.0)
 gunshot_rifle_sound = Audio('assets/sounds/sonidoRifle.mp3', loop=False, autoplay=False, volume=0.5)
 gunshot_shotgun_sound = Audio('assets/sounds/sonidoEscopeta.mp3', loop=False, autoplay=False, volume=3.0) 
 hit_sound = Audio('assets/sounds/hit.mp3', loop=False, autoplay=False, volume=0.5)
